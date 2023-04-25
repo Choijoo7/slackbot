@@ -1,160 +1,75 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+import os
+import time
+import random
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
+from slack_bolt import App
+from datetime import datetime
+from pytz import timezone
 
-# C extensions
-*.so
+# Set your timezone
+tz = timezone(‘MN')
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# Set your Slack app credentials
+SLACK_APP_TOKEN = os.environ[“xapp-1-A054KUM2JBU-5168734359953-8bfb4a05220ee5210e7627b8ffd9f8347a13029371d719b9cb482e6f8914737b”]
+SLACK_BOT_TOKEN = os.environ[“xoxb-4044466201808-5158540305892-B0dfcbc3TeZyC3nYO2BzOoU1”]
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# Create a Slack API client for the bot user
+bot_client = WebClient(token=SLACK_BOT_TOKEN)
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# Create a new Slack bot using the Bolt framework
+app = App(token=SLACK_BOT_TOKEN)
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
+# Set the time range during which the bot will send messages (in 24-hour format)
+start_time = “17:00"
+end_time = "17:30"
 
-# Translations
-*.mo
-*.pot
+# Define a function to send a personalized message
+def send_personalized_message(user_id):
+    # Add your personalized messages here
+    messages = [
+        “Баяртай, {user}! Өнөөдөр сайн ажилласан шүү!”,
+        “Сайн уу {user}, ажил нь бүтэж байна уу?”
+    ]
+    # Choose a random message to send
+    message = random.choice(messages).format(user="<@"+user_id+">")
+    # Send the message as another user
+    try:
+        response = bot_client.chat_postMessage(channel=user_id, text=message, as_user=False, username=“Iderbat”)
+        print(response)
+    except SlackApiError as e:
+        print("Error sending message: {}".format(e))
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# Define a function to check if it's daytime
+def is_daytime():
+    # Get the current time in your timezone
+    now = datetime.now(tz)
+    # Get the start and end times of the daytime range
+    start = datetime.strptime(start_time, “11H:00M").replace(tzinfo=tz)
+    end = datetime.strptime(end_time, “12H:00M").replace(tzinfo=tz)
+    # Check if the current time is within the daytime range
+    if now >= start and now <= end:
+        return True
+    else:
+        return False
 
-# Flask stuff:
-instance/
-.webassets-cache
+# Define a function to run the bot
+def run_bot():
+    # Get a list of all users in the workspace
+    try:
+        response = bot_client.users_list()
+        users = response["members"]
+    except SlackApiError as e:
+        print("Error getting user list: {}".format(e))
+        return
 
-# Scrapy stuff:
-.scrapy
+    # Filter out bots and deleted users
+    users = [user for user in users if not user["is_bot"] and not user["deleted"]]
 
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/#use-with-ide
-.pdm.toml
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+    # Loop through the list of users and send a personalized message during daytime hours
+    for user in users:
+        user_id = user["id"]
+        if is_daytime():
+            send_personalized_message(user_id)
+            # Sleep for a random amount of time (between 1 and 5 minutes) to avoid rate limiting
+            time.sleep(random.randint(60, 300))
