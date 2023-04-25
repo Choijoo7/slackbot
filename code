@@ -11,8 +11,8 @@ from pytz import timezone
 tz = timezone(‘MN')
 
 # Set your Slack app credentials
-SLACK_APP_TOKEN = os.environ[“xapp-1-A054KUM2JBU-5168734359953-8bfb4a05220ee5210e7627b8ffd9f8347a13029371d719b9cb482e6f8914737b”]
-SLACK_BOT_TOKEN = os.environ[“xoxb-4044466201808-5158540305892-B0dfcbc3TeZyC3nYO2BzOoU1”]
+SLACK_APP_TOKEN = os.environ[“xapp-1-A054KUM2JBU-5155132410550-c6f6a3aea32e596ec10dad52fe026e075ae2c25aeecc567991ba7ece16b8457c”]
+SLACK_BOT_TOKEN = os.environ[“xoxb-4044466201808-5158540305892-1qVcs2vqw1JKJ1NToVxIPlm7”]
 
 # Create a Slack API client for the bot user
 bot_client = WebClient(token=SLACK_BOT_TOKEN)
@@ -21,8 +21,8 @@ bot_client = WebClient(token=SLACK_BOT_TOKEN)
 app = App(token=SLACK_BOT_TOKEN)
 
 # Set the time range during which the bot will send messages (in 24-hour format)
-start_time = “17:00"
-end_time = "17:30"
+start_time = “12:00"
+end_time = "13:00"
 
 # Define a function to send a personalized message
 def send_personalized_message(user_id):
